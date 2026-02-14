@@ -239,9 +239,11 @@ actor StdioProxy {
                 }
 
                 if bytesRead == 0 {
-                    // EOF reached
+                    // EOF reached — stdin has been closed (e.g., parent process exited).
+                    // Throw connectionClosed so MCPService.run() exits instead of
+                    // reconnecting in a loop with nobody on the other end of stdin.
                     await log.debug("EOF reached on stdin, stopping stdin handler")
-                    break
+                    throw StdioProxyError.connectionClosed
                 }
 
                 if bytesRead > 0 {
